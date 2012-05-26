@@ -1,4 +1,18 @@
 DollarMaker::Application.routes.draw do
+  
+  resources :users do
+    collection do
+      match 'connect'
+      match 'callback'
+    end
+    member do
+      get 'start'
+    end
+  end
+
+  root :to =>  'users#start'
+
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
