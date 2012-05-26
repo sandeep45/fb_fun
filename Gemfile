@@ -9,6 +9,7 @@ gem 'pg'
 
 gem 'koala'
 
+gem 'awesome_print'
 
 # Gems used only for assets and not required
 # in production environments by default.

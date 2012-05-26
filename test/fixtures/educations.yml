@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  type: 
+  year: 1
+  degree: MyString
+
+two:
+  name: MyString
+  type: 
+  year: 1
+  degree: MyString

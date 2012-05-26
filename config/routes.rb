@@ -1,10 +1,13 @@
 DollarMaker::Application.routes.draw do
   
-  resources :users do
+  resources :facebooks do
     collection do
       match 'connect'
       match 'callback'
     end
+  end
+
+  resources :users do
     member do
       get 'start'
     end

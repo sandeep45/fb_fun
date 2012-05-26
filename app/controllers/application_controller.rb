@@ -4,6 +4,6 @@ class ApplicationController < ActionController::Base
   protected
   def setupFacebook
   	@oauth = Koala::Facebook::OAuth.new(ENV["FB_ID"],
-  					ENV["FB_SECRET"],callback_users_url)
+  					ENV["FB_SECRET"],callback_facebooks_url)
   end
 end

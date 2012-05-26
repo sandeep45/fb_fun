@@ -1,0 +1,21 @@
+<h1>Listing facebooks</h1>
+
+<table>
+  <tr>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @facebooks.each do |facebook| %>
+  <tr>
+    <td><%= link_to 'Show', facebook %></td>
+    <td><%= link_to 'Edit', edit_facebook_path(facebook) %></td>
+    <td><%= link_to 'Destroy', facebook, confirm: 'Are you sure?', method: :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Facebook', new_facebook_path %>
