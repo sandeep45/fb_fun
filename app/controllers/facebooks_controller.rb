@@ -37,6 +37,7 @@ class FacebooksController < ApplicationController
       
       @graph = Koala::Facebook::API.new(atInfo["access_token"])
       profile = @graph.get_object("me")
+      logger.info "access_token page reads: #{ap atInfo}"
       logger.info "facebook profile reads: #{ap profile}"
 
       # if @provider.facebook.present?

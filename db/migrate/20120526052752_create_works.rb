@@ -4,7 +4,7 @@ class CreateWorks < ActiveRecord::Migration
       t.integer :facebook_id
       t.string :name
       t.string :location
-      t.name :position
+      t.string :position
       t.text :description
 
       t.timestamps

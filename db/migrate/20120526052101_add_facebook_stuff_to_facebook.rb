@@ -1,6 +1,6 @@
 class AddFacebookStuffToFacebook < ActiveRecord::Migration
   def change
-    add_column :facebooks, :id, :string
+    add_column :facebooks, :uid, :string
     add_column :facebooks, :name, :string
     add_column :facebooks, :username, :string
     add_column :facebooks, :hometown, :string
