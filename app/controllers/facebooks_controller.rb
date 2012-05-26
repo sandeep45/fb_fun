@@ -31,7 +31,7 @@ class FacebooksController < ApplicationController
       return
     end
 
-    begin
+    #begin
       atInfo = @oauth.get_access_token_info(params["code"])
       logger.info "access token info #{atInfo}"
       
@@ -40,22 +40,28 @@ class FacebooksController < ApplicationController
       logger.info "access_token page reads: #{ap atInfo}"
       logger.info "facebook profile reads: #{ap profile}"
 
-      # if @provider.facebook.present?
-      #   logger.info "this user already has a facebook auth present. updating access token"
-      #   @provider.facebook.update_attributes :access_token => atInfo["access_token"],
-      #       :uid => profile["id"], :expires_at => Time.now + atInfo["expires"].to_i,
-      #       :profile_name => profile["name"]
-      # else
-      #   logger.info "creating facebook auth for this user"
-      #   @provider.facebook = Facebook.create :access_token => atInfo["access_token"],
-      #       :uid => profile["id"], :expires_at => Time.now + atInfo["expires"].to_i,
-      #       :profile_name => profile["name"]
-    
-    rescue => e
-      logger.error "error while getting access token: #{e}"
-      render :status => 200, :text => "unable to get access token: #{e}"
-      return
-    end
+      f = Facebook.find_by_uid(profile["id"])
+      if f.present?
+        logger.info "facebook profile already present, should update"
+
+      else #TODO rather than creating a user search for a user as it may have been created via twitter, linked in etc. search could be via email, name etc.
+        logger.info "no such facebook profile exists."
+        user = User.create :name => profile["name"]
+        #user.emails << profile[:email] if user.emails.exists? :email => profile[:email]
+        user.build_facebook :uid => profile["id"], :name => profile["name"],
+            :username => profile["username"], :hometown => profile["hometown"]["name"],
+            :gender => profile["gender"], :email => profile["email"],
+            :verified => profile["verified"], :up_time => profile["updated_time"],
+            :link => profile["link"], :timezone => profile["timezone"],
+            :access_token => atInfo["access_token"],
+            :expires_at => Time.now + atInfo["expires"].to_i
+        user.save!
+      end
+    # rescue => e
+    #   logger.error "error while saving user: #{e}"
+    #   render :status => 200, :text => "unable to get access token: #{e}"
+    #   return
+    # end
 
     render :status => 200, :text => "data captured. Thx"
   end 
