@@ -5,10 +5,12 @@
     <th></th>
     <th></th>
     <th></th>
+    <th>uid</th>
   </tr>
 
 <% @facebooks.each do |facebook| %>
   <tr>
+    <td><%= facebook.uid %>
     <td><%= link_to 'Show', facebook %></td>
     <td><%= link_to 'Edit', edit_facebook_path(facebook) %></td>
     <td><%= link_to 'Destroy', facebook, confirm: 'Are you sure?', method: :delete %></td>

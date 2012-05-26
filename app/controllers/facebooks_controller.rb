@@ -43,20 +43,15 @@ class FacebooksController < ApplicationController
       f = Facebook.find_by_uid(profile["id"])
       if f.present?
         logger.info "facebook profile already present, should update"
-
+        user = f.user
+        updateFacebook(profile,atInfo,user)
       else #TODO rather than creating a user search for a user as it may have been created via twitter, linked in etc. search could be via email, name etc.
         logger.info "no such facebook profile exists."
         user = User.create :name => profile["name"]
-        #user.emails << profile[:email] if user.emails.exists? :email => profile[:email]
-        user.build_facebook :uid => profile["id"], :name => profile["name"],
-            :username => profile["username"], :hometown => profile["hometown"]["name"],
-            :gender => profile["gender"], :email => profile["email"],
-            :verified => profile["verified"], :up_time => profile["updated_time"],
-            :link => profile["link"], :timezone => profile["timezone"],
-            :access_token => atInfo["access_token"],
-            :expires_at => Time.now + atInfo["expires"].to_i
-        user.save!
+        createNewFacebook(profile,atInfo,user)
       end
+
+      
     # rescue => e
     #   logger.error "error while saving user: #{e}"
     #   render :status => 200, :text => "unable to get access token: #{e}"
