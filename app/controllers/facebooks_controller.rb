@@ -20,6 +20,7 @@ class FacebooksController < ApplicationController
         r.Say 'We highly recommend connecting with us via facebook to get expedited service' 
         r.Pause
         r.Play  'http://ia600406.us.archive.org/1/items/onclassical-OC7Cs-twin/onclassical_luisi_mozart_sonate_10_C-major_330_1_akg_c-414.mp3'    
+        r.Hangup
       r.Pause               
       r.Hangup
     end
