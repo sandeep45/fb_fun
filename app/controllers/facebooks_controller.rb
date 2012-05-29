@@ -4,6 +4,11 @@ class FacebooksController < ApplicationController
 
   before_filter :setupFacebook
 
+  def launch
+    logger.info "***** on signup page"
+  end
+
+
   def voice
     response = Twilio::TwiML::Response.new do |r|
         r.Say 'Hi, Thank You for calling to enter to win a $100 amazon gift card', :voice => 'woman'

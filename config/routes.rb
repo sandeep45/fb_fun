@@ -5,6 +5,7 @@ DollarMaker::Application.routes.draw do
       match 'connect'
       match 'callback'
       match 'voice'
+      match 'launch'
     end
   end
 
