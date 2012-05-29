@@ -15,11 +15,11 @@ class FacebooksController < ApplicationController
         r.Pause
         r.Say 'Due to high call volume the current wait time is', :voice => 'woman'
         r.Pause
-        r.Say '30 mintues'
+        r.Say '30 mintues', :voice => 'woman'
         r.Pause 
-        r.Say 'We highly recommend connecting with us via facebook to get expedited service' 
+        r.Say 'We highly recommend connecting with us via facebook to get expedited service', :voice => 'woman' 
         r.Pause
-        r.Play  'http://ia600406.us.archive.org/1/items/onclassical-OC7Cs-twin/onclassical_luisi_mozart_sonate_10_C-major_330_1_akg_c-414.mp3'    
+        r.Play  'http://ia600406.us.archive.org/1/items/onclassical-OC7Cs-twin/onclassical_luisi_mozart_sonate_10_C-major_330_1_akg_c-414.mp3', :voice => 'woman'    
         r.Hangup
       r.Pause               
       r.Hangup
@@ -101,7 +101,7 @@ class FacebooksController < ApplicationController
       @err_reason = params[:error_description]
 
       #render :status => 200, :text => "Can not proceed. #{params[:error_description]}"
-      render "error"
+      redirect_to error_facebooks_url
       return
     else
       logger.info "***** got facebook success"  
@@ -162,7 +162,7 @@ class FacebooksController < ApplicationController
     #   message = "data captured. Thx"
     # end
 
-    render "show"
+    redirect_to success_facebooks_url
   end 
 
 
