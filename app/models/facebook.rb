@@ -1,6 +1,6 @@
 class Facebook < ActiveRecord::Base
 	belongs_to :user
-	has_one :work
-	has_one :education
-	has_one :athlete
+	has_many :works
+	has_many :educations
+	has_many :athletes
 end

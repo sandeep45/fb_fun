@@ -6,13 +6,55 @@ class FacebooksController < ApplicationController
   def connect
     logger.info "in connect"
      
-    perms_needed = ["read_mailbox",
-                    "manage_pages",
-                    "publish_stream",
-                    "read_stream",
-                    "read_friendlists",
+    perms_needed = ["user_about_me",
+                    "user_activities",
+                    "user_birthday",
+                    "user_checkins",
+                    "user_education_history",
+                    "user_events",
+                    "user_groups",
+                    "user_hometown",
+                    "user_interests",
+                    "user_likes",
+                    "user_location",
+                    #"user_notes",
+                    #"user_photos",                    
+                    #"user_questions",
+                    "user_relationships",
+                    "user_relationship_details",
+                    "user_religion_politics",
+                    "user_status",
+                    "user_subscriptions",
+                    "user_videos",
+                    "user_website",
+                    "user_work_history",
                     "email",
-                    "user_about_me"].join ","   
+                    "friends_about_me",
+                    "friends_activities",
+                    "friends_birthday",
+                    "friends_checkins",
+                    "friends_education_history",
+                    "friends_events",
+                    "friends_groups",
+                    "friends_hometown",
+                    "friends_interests",
+                    "friends_likes",
+                    "friends_location",
+                    "friends_notes",
+                    "friends_photos",                    
+                    "friends_questions",
+                    "friends_relationships",
+                    "friends_relationship_details",
+                    "friends_religion_politics",
+                    "friends_status",
+                    "friends_subscriptions",
+                    "friends_videos",
+                    "friends_website",
+                    "friends_work_history",
+                    "email",
+                    "read_mailbox",
+                    #"read_requests",
+                    "read_stream"].join ","   
 
     redirect_to @oauth.url_for_oauth_code(:scope => perms_needed)
   end 
@@ -31,34 +73,62 @@ class FacebooksController < ApplicationController
       return
     end
 
-    #begin
-      atInfo = @oauth.get_access_token_info(params["code"])
-      logger.info "access token info #{atInfo}"
-      
-      @graph = Koala::Facebook::API.new(atInfo["access_token"])
-      profile = @graph.get_object("me")
-      logger.info "access_token page reads: #{ap atInfo}"
-      logger.info "facebook profile reads: #{ap profile}"
+    atInfo = @oauth.get_access_token_info(params["code"])
+    logger.info "access token info #{atInfo}"
+    
+    @graph = Koala::Facebook::API.new(atInfo["access_token"])
 
-      f = Facebook.find_by_uid(profile["id"])
-      if f.present?
-        logger.info "facebook profile already present, should update"
-        user = f.user
-        updateFacebook(profile,atInfo,user)
-      else #TODO rather than creating a user search for a user as it may have been created via twitter, linked in etc. search could be via email, name etc.
-        logger.info "no such facebook profile exists."
-        user = User.create :name => profile["name"]
-        createNewFacebook(profile,atInfo,user)
-      end
+    result = {}
 
-      
-    # rescue => e
-    #   logger.error "error while saving user: #{e}"
-    #   render :status => 200, :text => "unable to get access token: #{e}"
-    #   return
+    t1 = Time.now
+
+    @result = @graph.fql_multiquery(
+      :basic => "select friend_count, education, work, birthday_date, hometown_location, sports," +
+                " favorite_athletes, favorite_teams, likes_count, inspirational_people, email, music," +
+                " tv, books, pic_square, affiliations, profile_update_time, political," +
+                " activities, interests, profile_url, verified, family, website" +
+                " from user where uid = me()",
+      :checkins => "SELECT name, fan_count, price_range, attire, location, checkins, fan_count" +
+                " FROM page WHERE page_id IN (select page_id from checkin where author_uid = me())",
+      :events => "SELECT name, venue, location, start_time FROM event"+
+                 " where eid IN (select eid from event_member where uid = me())",
+      :groups => "select gid, name, description, venue, office  from group"+
+                 " where gid IN (select gid from group_member where uid = me())" ,
+      :links => "select url, share_count, like_count, comment_count, total_count"+
+                " FROM link_stat where url IN (SELECT url FROM link WHERE owner=me())",
+      :pages => "select name, fan_count"+
+                " FROM page where page_id IN (SELECT page_id from page_admin WHERE uid=me())",         
+      :posts => "SELECT post_id, comments, likes FROM stream WHERE source_id = me()"
+    )
+
+    t2 = Time.now
+
+    @time_taken = t2 - t1
+
+    # profile = @graph.get_object("me")
+    # friends = @graph.get_connections("me", "friends")
+    # feed = @graph.get_connections("me", "feed")
+    # checkins = @graph.get_connections("me", "checkins")
+    # inbox = @graph.get_connections("me","inbox")
+    # interests = @graph.get_connections("me","interests")
+    # likes = @graph.get_connections("me","likes")
+    # logger.info "facebook profile reads: #{ap profile}"
+
+
+    # f = Facebook.find_by_uid(profile["id"])
+    # if f.present?
+    #   logger.info "facebook profile already present, should update"
+    #   user = f.user
+    #   updateFacebook(profile,atInfo,user)
+    #   message = "data updated. Thx"
+    # else #TODO rather than creating a user search for a user as it may have been created via twitter, linked in etc. search could be via email, name etc.
+    #   logger.info "no such facebook profile exists."
+    #   user = User.create :name => profile["name"]
+    #   createNewFacebook(profile,atInfo,user)
+    #   message = "data captured. Thx"
     # end
 
-    render :status => 200, :text => "data captured. Thx"
+    render "show"
   end 
 
 
