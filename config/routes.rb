@@ -4,6 +4,7 @@ DollarMaker::Application.routes.draw do
     collection do
       match 'connect'
       match 'callback'
+      match 'voice'
     end
   end
 
@@ -12,6 +13,8 @@ DollarMaker::Application.routes.draw do
       get 'start'
     end
   end
+
+
 
   root :to =>  'users#start'
 

@@ -1,60 +1,82 @@
+require 'twilio-ruby'
+
 class FacebooksController < ApplicationController
 
   before_filter :setupFacebook
 
+  def voice
+    response = Twilio::TwiML::Response.new do |r|
+        r.Say 'Hi, Thank You for calling to enter to win a $100 amazon gift card', :voice => 'woman'
+        r.Pause
+        r.Say 'Due to high call volume the current wait time is', :voice => 'woman'
+        r.Pause
+        r.Say '30 mintues'
+        r.Pause 
+        r.Say 'We highly recommend connecting with us via facebook to get expedited service' 
+        r.Pause
+        r.Play  'http://ia600406.us.archive.org/1/items/onclassical-OC7Cs-twin/onclassical_luisi_mozart_sonate_10_C-major_330_1_akg_c-414.mp3'    
+      r.Pause               
+      r.Hangup
+    end
+
+    # print the result
+    logger.info response.text
+
+    render :xml => response.text
+  end
 
   def connect
-    logger.info "in connect"
+    logger.info "***** in facebook connect"
      
-    perms_needed = ["user_about_me",
-                    "user_activities",
-                    "user_birthday",
-                    "user_checkins",
-                    "user_education_history",
-                    "user_events",
-                    "user_groups",
-                    "user_hometown",
-                    "user_interests",
-                    "user_likes",
-                    "user_location",
-                    #"user_notes",
-                    #"user_photos",                    
-                    #"user_questions",
-                    "user_relationships",
-                    "user_relationship_details",
-                    "user_religion_politics",
-                    "user_status",
-                    "user_subscriptions",
-                    "user_videos",
-                    "user_website",
-                    "user_work_history",
-                    "email",
-                    "friends_about_me",
-                    "friends_activities",
-                    "friends_birthday",
-                    "friends_checkins",
-                    "friends_education_history",
-                    "friends_events",
-                    "friends_groups",
-                    "friends_hometown",
-                    "friends_interests",
-                    "friends_likes",
-                    "friends_location",
-                    "friends_notes",
-                    "friends_photos",                    
-                    "friends_questions",
-                    "friends_relationships",
-                    "friends_relationship_details",
-                    "friends_religion_politics",
-                    "friends_status",
-                    "friends_subscriptions",
-                    "friends_videos",
-                    "friends_website",
-                    "friends_work_history",
-                    "email",
-                    "read_mailbox",
+    perms_needed = ["user_about_me"].join ","
+                    # "user_activities",
+                    # "user_birthday",
+                    # "user_checkins",
+                    # "user_education_history",
+                    # "user_events",
+                    # "user_groups",
+                    # "user_hometown",
+                    # "user_interests",
+                    # "user_likes",
+                    # "user_location",
+                    # #"user_notes",
+                    # #"user_photos",                    
+                    # #"user_questions",
+                    # "user_relationships",
+                    # "user_relationship_details",
+                    # "user_religion_politics",
+                    # "user_status",
+                    # "user_subscriptions",
+                    # "user_videos",
+                    # "user_website",
+                    # "user_work_history",
+                    # "email",
+                    # "friends_about_me",
+                    # "friends_activities",
+                    # "friends_birthday",
+                    # "friends_checkins",
+                    # "friends_education_history",
+                    # "friends_events",
+                    # "friends_groups",
+                    # "friends_hometown",
+                    # "friends_interests",
+                    # "friends_likes",
+                    # "friends_location",
+                    # "friends_notes",
+                    # "friends_photos",                    
+                    # "friends_questions",
+                    # "friends_relationships",
+                    # "friends_relationship_details",
+                    # "friends_religion_politics",
+                    # "friends_status",
+                    # "friends_subscriptions",
+                    # "friends_videos",
+                    # "friends_website",
+                    # "friends_work_history",
+                    # "email",
+                    # "read_mailbox",
                     #"read_requests",
-                    "read_stream"].join ","   
+                    #{}"read_stream"].join ","   
 
     redirect_to @oauth.url_for_oauth_code(:scope => perms_needed)
   end 
@@ -65,12 +87,18 @@ class FacebooksController < ApplicationController
     logger.info "got code #{params[:code]}"
 
     if params[:error].present?
+      logger.info "***** got facebook error"
       logger.info "error: #{params[:error]}"
       logger.info "error reason: #{params[:error_reason]}"
       logger.info "error description: #{params[:error_description]}"
 
-      render :status => 200, :text => "Can not proceed. #{params[:error_description]}"
+      @err_reason = params[:error_description]
+
+      #render :status => 200, :text => "Can not proceed. #{params[:error_description]}"
+      render "error"
       return
+    else
+      logger.info "***** got facebook success"  
     end
 
     atInfo = @oauth.get_access_token_info(params["code"])
@@ -80,30 +108,30 @@ class FacebooksController < ApplicationController
 
     result = {}
 
-    t1 = Time.now
+    # t1 = Time.now
 
-    @result = @graph.fql_multiquery(
-      :basic => "select friend_count, education, work, birthday_date, hometown_location, sports," +
-                " favorite_athletes, favorite_teams, likes_count, inspirational_people, email, music," +
-                " tv, books, pic_square, affiliations, profile_update_time, political," +
-                " activities, interests, profile_url, verified, family, website" +
-                " from user where uid = me()",
-      :checkins => "SELECT name, fan_count, price_range, attire, location, checkins, fan_count" +
-                " FROM page WHERE page_id IN (select page_id from checkin where author_uid = me())",
-      :events => "SELECT name, venue, location, start_time FROM event"+
-                 " where eid IN (select eid from event_member where uid = me())",
-      :groups => "select gid, name, description, venue, office  from group"+
-                 " where gid IN (select gid from group_member where uid = me())" ,
-      :links => "select url, share_count, like_count, comment_count, total_count"+
-                " FROM link_stat where url IN (SELECT url FROM link WHERE owner=me())",
-      :pages => "select name, fan_count"+
-                " FROM page where page_id IN (SELECT page_id from page_admin WHERE uid=me())",         
-      :posts => "SELECT post_id, comments, likes FROM stream WHERE source_id = me()"
-    )
+    # @result = @graph.fql_multiquery(
+    #   :basic => "select friend_count, education, work, birthday_date, hometown_location, sports," +
+    #             " favorite_athletes, favorite_teams, likes_count, inspirational_people, email, music," +
+    #             " tv, books, pic_square, affiliations, profile_update_time, political," +
+    #             " activities, interests, profile_url, verified, family, website" +
+    #             " from user where uid = me()",
+    #   :checkins => "SELECT name, fan_count, price_range, attire, location, checkins, fan_count" +
+    #             " FROM page WHERE page_id IN (select page_id from checkin where author_uid = me())",
+    #   :events => "SELECT name, venue, location, start_time FROM event"+
+    #              " where eid IN (select eid from event_member where uid = me())",
+    #   :groups => "select gid, name, description, venue, office  from group"+
+    #              " where gid IN (select gid from group_member where uid = me())" ,
+    #   :links => "select url, share_count, like_count, comment_count, total_count"+
+    #             " FROM link_stat where url IN (SELECT url FROM link WHERE owner=me())",
+    #   :pages => "select name, fan_count"+
+    #             " FROM page where page_id IN (SELECT page_id from page_admin WHERE uid=me())",         
+    #   :posts => "SELECT post_id, comments, likes FROM stream WHERE source_id = me()"
+    # )
 
-    t2 = Time.now
+    # t2 = Time.now
 
-    @time_taken = t2 - t1
+    # @time_taken = t2 - t1
 
     # profile = @graph.get_object("me")
     # friends = @graph.get_connections("me", "friends")
